@@ -4,6 +4,8 @@ on:
   pull_request:
     types: 
       - opened
+  schedule:
+    - cron: '42 21 * * *'  # Run daily at midnight UTC
 
 permissions:
   contents: read
