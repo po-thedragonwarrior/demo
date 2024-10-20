@@ -1,0 +1,95 @@
+name: Auto-Merge Project Submissions (No Web Files, Require Python/AIML)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Check PR structure and rules
+        id: check_pr
+        run: |
+          PR_FILES=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path')
+          PR_CHANGES=$(gh pr view ${{ github.event.pull_request.number }} --json additions,deletions --jq '(.additions + .deletions)')
+          FILE_COUNT=$(echo "$PR_FILES" | wc -l)
+          VALID=true
+          REASONS=""
+          
+          # Check if all files are within a single directory in the root
+          ROOT_DIR=$(echo "$PR_FILES" | cut -d'/' -f1 | sort -u)
+          if [ $(echo "$ROOT_DIR" | wc -l) -ne 1 ] || [ -z "$ROOT_DIR" ] || [ "$ROOT_DIR" = "." ]; then
+            VALID=false
+            REASONS+="- Files are not within a single directory in the root.\n"
+          fi
+          
+          # Check if the directory name is valid (alphanumeric, hyphens, and underscores only)
+          if ! [[ $ROOT_DIR =~ ^[a-zA-Z0-9_-]+$ ]]; then
+            VALID=false
+            REASONS+="- Directory name contains invalid characters.\n"
+          fi
+          
+          # Check for node_modules or venv folders
+          if echo "$PR_FILES" | grep -qE '(node_modules|venv)/'; then
+            VALID=false
+            REASONS+="- 'node_modules' or 'venv' folders found in the PR.\n"
+          fi
+          
+          # Check for merge conflicts
+          if gh pr view ${{ github.event.pull_request.number }} --json mergeable --jq '.mergeable' | grep -q false; then
+            VALID=false
+            REASONS+="- PR has merge conflicts.\n"
+          fi
+          
+          # Check for spaces at the beginning or end of folder names
+          if echo "$PR_FILES" | grep -qE '(^| )/| /|/ |/$'; then
+            VALID=false
+            REASONS+="- Spaces found at the beginning or end of folder names in file paths.\n"
+          fi
+          
+          # Check for absence of web-related files and presence of Python or AIML files
+          if echo "$PR_FILES" | grep -qE '\.(html|css|js|jsx|ts|tsx)$'; then
+            VALID=false
+          fi
+          if ! echo "$PR_FILES" | grep -qE '\.(py|aiml)$'; then
+            VALID=false
+          fi
+          
+          # Check for minimum 300 lines changed and maximum 100 files (no comment added)
+          if [ $PR_CHANGES -lt 300 ] || [ $FILE_COUNT -gt 100 ]; then
+            VALID=false
+          fi
+          
+          echo "valid=$VALID" >> $GITHUB_OUTPUT
+          echo "reasons<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$REASONS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add open-odyssey label
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "open-odyssey"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Auto-merge pull request
+        if: steps.check_pr.outputs.valid == 'true'
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "dino-accepted"
+          gh pr merge ${{ github.event.pull_request.number }} --auto --merge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on invalid PR
+        if: steps.check_pr.outputs.valid == 'false' && steps.check_pr.outputs.reasons != ''
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "waiting room"
+          gh pr comment ${{ github.event.pull_request.number }} --body "This pull request does not meet the required structure or rules. Please address the following issues:\n\n${{ steps.check_pr.outputs.reasons }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
