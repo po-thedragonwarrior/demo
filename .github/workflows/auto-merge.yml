@@ -88,7 +88,7 @@ jobs:
 
       - name: Add open-odyssey label
         run: |
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "open-odyssey"
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "good first issue"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
 
