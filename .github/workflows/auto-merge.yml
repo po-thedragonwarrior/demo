@@ -96,3 +96,8 @@ jobs:
           gh pr comment ${{ github.event.pull_request.number }} --body "This pull request does not meet the required structure or rules. Please address the following issues:\n\n${{ steps.check_pr.outputs.reasons }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Auto-Merge Pull Request
+        uses: reitermarkus/automerge@v2.8.0
+            
+            
