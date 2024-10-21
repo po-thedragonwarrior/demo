@@ -2,7 +2,7 @@ name: Auto-Merge Project Submissions (No Web Files, Require Python/AIML)
 
 on:
   schedule:
-    - cron: '46 16 * * *' 
+    - cron: '48 16 * * *' 
 
 permissions:
   contents: read
