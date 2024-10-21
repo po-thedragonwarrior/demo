@@ -72,15 +72,13 @@ jobs:
             VALID=false
           fi
           
-          echo "valid=$VALID" >> $GITHUB_OUTPUT
-          echo "reasons<<EOF" >> $GITHUB_OUTPUT
-          echo -e "$REASONS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "::set-output name=valid::$VALID"
+          echo "::set-output name=reasons::$REASONS"
+          echo "VALID: $VALID"
+          echo "REASONS: $REASONS"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-
+          
       - name: Auto-merge pull request
         if: steps.check_pr.outputs.valid == 'true'
         run: |
