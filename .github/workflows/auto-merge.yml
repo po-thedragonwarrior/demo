@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
   schedule:
-    - cron: '13 14 * * *' 
+    - cron: '17 14 * * *' 
 
 permissions:
   contents: read
@@ -85,7 +85,7 @@ jobs:
           echo -e "$REASONS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+          GH_TOKEN: ${{ secrets.PAT }}
 
 
 
@@ -95,7 +95,7 @@ jobs:
           gh pr edit ${{ github.event.pull_request.number }} --add-label "dino-accepted"
           gh pr merge ${{ github.event.pull_request.number }} --auto --merge
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+          GH_TOKEN: ${{ secrets.PAT }}
 
       - name: Comment on invalid PR
         if: steps.check_pr.outputs.valid == 'false' && steps.check_pr.outputs.reasons != ''
@@ -103,4 +103,4 @@ jobs:
           gh pr edit ${{ github.event.pull_request.number }} --add-label "waiting room"
           gh pr comment ${{ github.event.pull_request.number }} --body "This pull request does not meet the required structure or rules. Please address the following issues:\n\n${{ steps.check_pr.outputs.reasons }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+          GH_TOKEN: ${{ secrets.PAT }}
