@@ -1,8 +1,10 @@
 name: Auto-Merge Project Submissions (No Web Files, Require Python/AIML)
 
 on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   schedule:
-    - cron: '06 14 * * *' 
+    - cron: '13 14 * * *' 
 
 permissions:
   contents: read
