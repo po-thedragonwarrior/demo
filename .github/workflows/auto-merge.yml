@@ -58,15 +58,15 @@ jobs:
             VALID=false
             REASONS+="- Spaces found at the beginning or end of folder names in file paths.\n"
           fi
-          
-          # Check for absence of web-related files and presence of Python or AIML files
-          if echo "$PR_FILES" | grep -qE '\.(html|css|js|jsx|ts|tsx)$'; then
+
+          # Check for absence of .py files and presence of web-related files
+          if echo "$PR_FILES" | grep -qE '\.py$'; then
             VALID=false
-            REASONS+="- file type"
+            REASONS+="- Python (.py) files are not allowed in this PR.\n"
           fi
-          if ! echo "$PR_FILES" | grep -qE '\.(py)$'; then
+          if ! echo "$PR_FILES" | grep -qE '\.(html|css|js|jsx|ts|tsx)$'; then
             VALID=false
-            REASONS+="- file type py"
+            REASONS+="- At least one web-related file (.html, .css, .js, .jsx, .ts, .tsx) is required in this PR.\n"
           fi
           
           # Check for minimum 300 lines changed and maximum 100 files (no comment added)
@@ -84,7 +84,7 @@ jobs:
 
       - name: Add open-odyssey label
         run: |
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "good first issue"
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "open-odyssey"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
