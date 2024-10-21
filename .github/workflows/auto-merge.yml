@@ -38,7 +38,7 @@ jobs:
           # Check if the directory name is valid (alphanumeric, hyphens, and underscores only)
           if ! [[ $ROOT_DIR =~ ^[a-zA-Z0-9_-]+$ ]]; then
             VALID=false
-            REASONS+="- Directory name contains invalid characters.\n"
+            REASONS+="- Invalid directory name or folder structure.\n"
           fi
           
           # Check for node_modules or venv folders
@@ -115,7 +115,6 @@ jobs:
         run: |
           gh pr comment ${{ github.event.pull_request.number }} --body-file - <<EOF
           This pull request does not meet the required structure or rules. Please address the following issues:
-          ${{ steps.check_pr.outputs.reasons }}
-          EOF
+          ${{ steps.check_pr.outputs.reasons }}EOF
         env:
           GH_TOKEN: ${{ secrets.PAT }}
