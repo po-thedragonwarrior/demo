@@ -5,7 +5,7 @@ on:
     types: 
       - opened
   schedule:
-    - cron: '41 13 * * *'  # Run daily at midnight UTC
+    - cron: '45 13 * * *'  # Run daily at midnight UTC
 
 permissions:
   contents: read
@@ -88,11 +88,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
 
-      - name: Add open-odyssey label
-        run: |
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "good first issue"
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+
 
       - name: Auto-merge pull request
         if: steps.check_pr.outputs.valid == 'true'
