@@ -113,8 +113,9 @@ jobs:
       - name: Comment on invalid PR
         if: steps.check_pr.outputs.valid == 'false' && steps.check_pr.outputs.reasons != ''
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body "This pull request does not meet the required structure or rules. Please address the following issues:\n\n - ${{ steps.check_pr.outputs.reasons }}"
+          gh pr comment ${{ github.event.pull_request.number }} --body-file - <<EOF
+          This pull request does not meet the required structure or rules. Please address the following issues:
+          ${{ steps.check_pr.outputs.reasons }}
+          EOF
         env:
           GH_TOKEN: ${{ secrets.PAT }}
-
-            
