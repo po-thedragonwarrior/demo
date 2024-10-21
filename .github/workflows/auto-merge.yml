@@ -1,8 +1,11 @@
-name: Auto-Merge Project Submissions (No Web Files, Require Python/AIML)
+name: merger
 
 on:
+  pull_request_target:
+
   schedule:
-    - cron: '48 16 * * *' 
+    - cron: '0 18 * * *'  # 12 AM midnight in IST (18:00 UTC)
+    - cron: '0 6 * * *'   # 12 PM afternoon in IST (6:00 UTC)
 
 permissions:
   contents: read
@@ -82,29 +85,29 @@ jobs:
 
       - name: Add open-odyssey label
         run: |
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "open-odyssey"
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "open-odyssey" --label-author ${{ github.repository_owner }}
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
           
       - name: Auto-merge pull request
         if: steps.check_pr.outputs.valid == 'true'
         run: |
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "dino-accepted"
-          gh pr merge ${{ github.event.pull_request.number }} --auto --merge
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "dino-accepted" --label-author ${{ github.repository_owner }}
+          gh pr merge ${{ github.event.pull_request.number }} --auto --merge --author ${{ github.repository_owner }}
         env:
           GH_TOKEN: ${{ secrets.PAT }}
 
       - name: Label on invalid PR
         if: steps.check_pr.outputs.valid == 'false'
         run: |
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "waiting room"
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "waiting room" --label-author ${{ github.repository_owner }}
         env:
           GH_TOKEN: ${{ secrets.PAT }}
 
       - name: Comment on invalid PR
         if: steps.check_pr.outputs.valid == 'false' && steps.check_pr.outputs.reasons != ''
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body "This pull request does not meet the required structure or rules. Please address the following issues:\n\n${{ steps.check_pr.outputs.reasons }}"
+          gh pr comment ${{ github.event.pull_request.number }} --body `This pull request does not meet the required structure or rules. Please address the following issues:\n\n - ${{ steps.check_pr.outputs.reasons }}` --author ${{ github.repository_owner }}
         env:
           GH_TOKEN: ${{ secrets.PAT }}
 
