@@ -68,7 +68,7 @@ jobs:
           fi
           
           # Check for minimum 300 lines changed and maximum 100 files (no comment added)
-          if [ $PR_CHANGES -lt 300 ] || [ $FILE_COUNT -gt 100 ]; then
+          if [ $PR_CHANGES -lt 10 ] || [ $FILE_COUNT -gt 100 ]; then
             VALID=false
           fi
           
@@ -87,10 +87,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Label on invalid PR
+        if: steps.check_pr.outputs.valid == 'false'
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "waiting room"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Comment on invalid PR
         if: steps.check_pr.outputs.valid == 'false' && steps.check_pr.outputs.reasons != ''
         run: |
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "waiting room"
           gh pr comment ${{ github.event.pull_request.number }} --body "This pull request does not meet the required structure or rules. Please address the following issues:\n\n${{ steps.check_pr.outputs.reasons }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
