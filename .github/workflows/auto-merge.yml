@@ -62,14 +62,17 @@ jobs:
           # Check for absence of web-related files and presence of Python or AIML files
           if echo "$PR_FILES" | grep -qE '\.(html|css|js|jsx|ts|tsx)$'; then
             VALID=false
+            REASONS+="- file type"
           fi
           if ! echo "$PR_FILES" | grep -qE '\.(py|aiml)$'; then
             VALID=false
+            REASONS+="- file type py"
           fi
           
           # Check for minimum 300 lines changed and maximum 100 files (no comment added)
           if [ $PR_CHANGES -lt 10 ] || [ $FILE_COUNT -gt 100 ]; then
             VALID=false
+            REASONS+="- lines"
           fi
           
           echo "::set-output name=valid::$VALID"
@@ -87,12 +90,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Label on invalid PR
-        if: steps.check_pr.outputs.valid == 'false'
-        run: |
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "waiting room"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
 
       - name: Comment on invalid PR
         if: steps.check_pr.outputs.valid == 'false' && steps.check_pr.outputs.reasons != ''
@@ -101,6 +99,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Auto-Merge Pull Request
-        uses: reitermarkus/automerge@v2.8.0
             
