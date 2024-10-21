@@ -80,13 +80,13 @@ jobs:
           echo "VALID: $VALID"
           echo "REASONS: $REASONS"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT }}
 
       - name: Add open-odyssey label
         run: |
           gh pr edit ${{ github.event.pull_request.number }} --add-label "open-odyssey"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
           
       - name: Auto-merge pull request
         if: steps.check_pr.outputs.valid == 'true'
@@ -94,20 +94,20 @@ jobs:
           gh pr edit ${{ github.event.pull_request.number }} --add-label "dino-accepted"
           gh pr merge ${{ github.event.pull_request.number }} --auto --merge
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT }}
 
       - name: Label on invalid PR
         if: steps.check_pr.outputs.valid == 'false'
         run: |
           gh pr edit ${{ github.event.pull_request.number }} --add-label "waiting room"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT }}
 
       - name: Comment on invalid PR
         if: steps.check_pr.outputs.valid == 'false' && steps.check_pr.outputs.reasons != ''
         run: |
           gh pr comment ${{ github.event.pull_request.number }} --body "This pull request does not meet the required structure or rules. Please address the following issues:\n\n${{ steps.check_pr.outputs.reasons }}"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT }}
 
             
