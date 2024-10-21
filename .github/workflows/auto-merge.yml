@@ -5,7 +5,7 @@ on:
     types: 
       - opened
   schedule:
-    - cron: '42 21 * * *'  # Run daily at midnight UTC
+    - cron: '41 13 * * *'  # Run daily at midnight UTC
 
 permissions:
   contents: read
